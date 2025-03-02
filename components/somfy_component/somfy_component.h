@@ -6,6 +6,7 @@
 
 class SomfyComponent : public esphome::Component {
  public:
+  // Priorytet konfiguracji
   float get_setup_priority() const override { return setup_priority::DATA; }
 
   void setup() override {
@@ -47,13 +48,20 @@ class SomfyComponent : public esphome::Component {
   void set_remote_id(uint32_t remote_id) { remote_id_ = remote_id; }
   void set_remote_name(const std::string &remote_name) { remote_name_ = remote_name; }
 
-  // Definicja CONFIG_SCHEMA
-  static void setup_from_yaml(const std::string &yaml_key, const YamlObject &yaml) {
+ private:
+  uint8_t pin_;
+  uint32_t remote_id_;
+  std::string remote_name_;
+  SomfyRemote* somfy_remote_ = nullptr;
+
+ public:
+  // Poprawna definicja CONFIG_SCHEMA
+  static void load_config(const std::string &yaml_key, const esphome::yaml::YamlObject &yaml) {
     auto *comp = new SomfyComponent();
     App.register_component(comp);
 
     if (yaml["pin"].is_defined()) {
-      comp->set_pin(yaml["pin"].as<uint8_t>());
+      comp->set_pin(parse_pin(yaml["pin"]));
     }
     if (yaml["remote_id"].is_defined()) {
       comp->set_remote_id(yaml["remote_id"].as<uint32_t>());
@@ -63,20 +71,17 @@ class SomfyComponent : public esphome::Component {
     }
   }
 
-  DECLARE_CONFIG_SCHEMA(
-      CONF_SCHEMA()
-          .add_key("pin", CONF_PIN, uint8_t)
-          .add_key("remote_id", CONF_INT, uint32_t)
-          .add_key("remote_name", CONF_STRING, std::string)
-  )
-
- private:
-  uint8_t pin_;
-  uint32_t remote_id_;
-  std::string remote_name_;
-  SomfyRemote* somfy_remote_ = nullptr;
+  static const ConfigSchema CONFIG_SCHEMA;
 };
 
+// Definicja CONFIG_SCHEMA poza klasą
+const ConfigSchema SomfyComponent::CONFIG_SCHEMA =
+    esphome::schema()
+        .add_key("pin", esphome::CONF_PIN_SCHEMA)
+        .add_key("remote_id", esphome::CONF_INT_SCHEMA)
+        .add_key("remote_name", esphome::CONF_STRING_SCHEMA);
+
+// Rejestracja komponentu
 namespace esphome {
-  ESPHOME_REGISTRY(SomfyComponent, "somfy_component", SomfyComponent::setup_from_yaml);
+  ESPHOME_REGISTER_COMPONENT(SomfyComponent, "somfy_component", SomfyComponent::load_config);
 }
