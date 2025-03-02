@@ -6,7 +6,6 @@
 
 class SomfyComponent : public esphome::Component {
  public:
-  // Deklaracja zmiennych jako wskaźników do użycia w schemacie konfiguracyjnym
   float get_setup_priority() const override { return setup_priority::DATA; }
 
   void setup() override {
@@ -53,7 +52,6 @@ class SomfyComponent : public esphome::Component {
     auto *comp = new SomfyComponent();
     App.register_component(comp);
 
-    // Pobieranie parametrów z YAML
     if (yaml["pin"].is_defined()) {
       comp->set_pin(yaml["pin"].as<uint8_t>());
     }
